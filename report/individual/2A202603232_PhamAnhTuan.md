@@ -18,23 +18,23 @@ The class definitions and ambiguity decisions are recorded in [GUIDELINE_MINI.md
 - Training label files: 50.
 - Checker result: 50/50 files valid; class IDs are limited to 0, 1, 2, and 3 and all boxes are normalized and inside image bounds.
 - Images reviewed: `drive_001`, `drive_002`, `drive_010`, `drive_020`, `drive_030`, `drive_035`, `drive_040`, `drive_045`, `drive_050`, and `drive_060`.
-- Main errors found: duplicate boxes and over-labeling in the earlier labels. The fine-tuned model labels were regenerated at confidence 0.40 to reduce false positives while preserving vehicle recall.
+- Main errors found: duplicate boxes and over-labeling in the earlier labels. The fine-tuned model labels were regenerated with 1024-pixel tiled inference, 20% tile overlap, and confidence 0.20 to improve small-vehicle recall.
 - Initial label commit: `786fe1a`.
 
 ## 4. Gold QC and rework
 
 | Metric | Before rework | After rework |
 |---|---:|---:|
-| TP | 462 | 429 |
-| FP | 1078 | 95 |
-| FN | 191 | 224 |
-| Precision | 0.3000 | 0.8187 |
-| Recall | 0.7075 | 0.6570 |
-| F1 | 0.4213 | 0.7290 |
-| mean_iou_of_matches | 0.8239 | 0.8800 |
+| TP | 462 | 507 |
+| FP | 1078 | 183 |
+| FN | 191 | 146 |
+| Precision | 0.3000 | 0.7348 |
+| Recall | 0.7075 | 0.7764 |
+| F1 | 0.4213 | 0.7550 |
+| mean_iou_of_matches | 0.8239 | 0.8777 |
 | passed | false | false |
 
-The final annotation evaluation is stored in `outputs/annotation_evaluation.json`. Precision and box overlap improved substantially, but recall and F1 remain below the repository target because small and partially occluded vehicles are still missed.
+The final annotation evaluation is stored in `outputs/annotation_evaluation.json`. Tiled inference improved recall and F1, but the result remains below the repository target because small and partially occluded vehicles are still missed.
 
 ## 5. YOLO results
 
@@ -61,13 +61,13 @@ The final annotation evaluation is stored in `outputs/annotation_evaluation.json
 
 | Step | Observed issue | Attempt | Result |
 |---|---|---|---|
-| Initial auto-label | Many duplicate and false-positive boxes | Compared confidence thresholds and used the fine-tuned four-class model | Confidence 0.40 gave the best tested F1 and substantially reduced false positives |
+| Initial auto-label | Many duplicate and false-positive boxes | Used 1024-pixel tiled inference with 20% overlap | Confidence 0.20 gave the best tested F1 and improved small-vehicle recall |
 | Fine-tuning | Small dataset and class imbalance | Used pretrained YOLO26m weights, 1024 resolution, 100 epochs, and GPU AMP | Validation metrics were produced, but recall remains limited |
 | Export | Repository requires exact YOLO structure | Ran `tools/check_yolo_labels.py` after replacing train labels | 50/50 files passed |
 
 ## 7. Rubric self-assessment
 
-Completed: repository structure, 50 train label files, mini guideline, annotation evaluation JSON, training metrics, eval prediction previews, and individual report. Remaining limitation: the final F1 is 0.7290, below the target 0.80, and no Colab link is available because the run used local Docker.
+Completed: repository structure, 50 train label files, mini guideline, annotation evaluation JSON, training metrics, eval prediction previews, and individual report. Remaining limitation: the final F1 is 0.7550, below the target 0.80, and no Colab link is available because the run used local Docker.
 
 ## 8. AI tools and references
 
