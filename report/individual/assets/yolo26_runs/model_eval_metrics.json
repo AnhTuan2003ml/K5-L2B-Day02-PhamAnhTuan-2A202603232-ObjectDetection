@@ -1,0 +1,15 @@
+{
+  "model": "YOLO26m",
+  "classes": ["car", "truck", "bus", "van"],
+  "images": 10,
+  "instances": 113,
+  "precision": 0.4792,
+  "recall": 0.4771,
+  "mAP50": 0.4590,
+  "mAP50-95": 0.3041,
+  "epochs": 100,
+  "imgsz": 1024,
+  "batch": 1,
+  "device": "NVIDIA RTX 4060",
+  "source": "outputs/yolo26_runs/gold_finetune_yolo26m/results.csv"
+}
