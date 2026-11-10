@@ -2,9 +2,9 @@ task: detect
 mode: train
 model: yolo26n.pt
 data: /workspace/data.yaml
-epochs: 50
+epochs: 300
 time: null
-patience: 100
+patience: 50
 batch: -1
 imgsz: 640
 save: true
@@ -13,7 +13,7 @@ cache: false
 device: '0'
 workers: 0
 project: /workspace/outputs/yolo26_runs
-name: yolo26n_student_labels
+name: yolo26n_train_early
 exist_ok: true
 pretrained: true
 optimizer: auto
@@ -105,4 +105,4 @@ auto_augment: randaugment
 erasing: 0.4
 cfg: null
 tracker: botsort.yaml
-save_dir: /workspace/outputs/yolo26_runs/yolo26n_student_labels
+save_dir: /workspace/outputs/yolo26_runs/yolo26n_train_early

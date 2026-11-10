@@ -2,14 +2,16 @@
   "model": "YOLO26n",
   "classes": ["car", "truck", "bus", "van"],
   "images": 10,
-  "instances": 113,
-  "precision": 0.7396,
-  "recall": 0.2181,
-  "mAP50": 0.2004,
-  "mAP50-95": 0.1388,
-  "epochs": 50,
+  "instances": 127,
+  "precision": 0.5831,
+  "recall": 0.3999,
+  "mAP50": 0.4221,
+  "mAP50-95": 0.3337,
+  "epochs": 300,
+  "early_stop_patience": 50,
+  "best_epoch": 159,
   "imgsz": 640,
   "batch": -1,
   "device": "NVIDIA RTX 4060",
-  "source": "validation of outputs/yolo26_runs/yolo26n_student_labels/weights/best.pt on dataset/images/eval"
+  "source": "validation of outputs/yolo26_runs/yolo26n_train_early/weights/best.pt on relabeled dataset/images/eval"
 }

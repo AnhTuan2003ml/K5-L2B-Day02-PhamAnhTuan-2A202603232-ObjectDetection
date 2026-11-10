@@ -1,110 +1,103 @@
-# Báo cáo cá nhân - Ngày 2 Object Detection
+# Báo cáo cá nhân — Ngày 2: Object Detection
 
 ## 1. Thông tin học viên
 
-- Họ tên: Phạm Anh Tuấn
-- MSSV: 2A202603232
-- Lớp: L2B
-- Email: Chưa cung cấp
-- Repository: https://github.com/AnhTuan2003ml/K5-L2B-Day02-PhamAnhTuan-2A202603232-ObjectDetection
-- Colab: Không có. Quá trình huấn luyện được chạy cục bộ bằng Docker với GPU NVIDIA RTX 4060. Đây là điểm chưa đúng yêu cầu nộp link Colab trong `SUBMISSION.md`.
+- **Họ tên:** Phạm Anh Tuấn
+- **MSSV:** 2A202603232
+- **Lớp:** L2B
+- **Repository:** https://github.com/AnhTuan2003ml/K5-L2B-Day02-PhamAnhTuan-2A202603232-ObjectDetection
+- **Môi trường chạy YOLO:** máy local, Docker, GPU NVIDIA RTX 4060; **không có phiên Colab hoặc link Colab đã chạy** trong hồ sơ.
+- **Minh chứng chạy local:** [tham số huấn luyện](assets/yolo26_runs/vehicle_annotation/args.yaml), [log theo epoch](assets/yolo26_runs/vehicle_annotation/results.csv), [kết quả đánh giá](assets/yolo26_runs/model_eval_metrics.json).
+
+**Về hình thức thực hiện:** Ultralytics/YOLO26 có thể train và evaluate trên máy local, không bắt buộc phải dùng Colab về mặt kỹ thuật. Các kết quả dưới đây là kết quả local đã lưu, không được mô tả thành kết quả Colab. Tuy nhiên, `SUBMISSION.md` và `RUBRIC.md` gốc yêu cầu notebook/link Colab; **việc chấp nhận minh chứng local thay thế là quyết định của giảng viên**, không thể tự xác nhận trong báo cáo. Tên repository hiện có chữ `Day02`, khác quy ước `DAY02` trong `SUBMISSION.md`.
 
 ## 2. Schema và mini guideline
 
-- Schema bắt buộc: `car = 0`, `truck = 1`, `bus = 2`, `van = 3`, giữ nguyên trong `data.yaml`.
-- Nội dung định nghĩa lớp, quy tắc vẽ box và ba ca mơ hồ được ghi tại [GUIDELINE_MINI.md](../../GUIDELINE_MINI.md), gồm `drive_002` (pickup nhỏ xếp `car`), `drive_035` (xe compact thân hộp xếp `van`) và `drive_050` (xe khách bị che một phần xếp `bus`).
-- Repo không có nhật ký hoặc commit riêng chứng minh ba quyết định trên do học viên trực tiếp thực hiện; nội dung được giữ nguyên để học viên xác nhận trước khi nộp.
+Schema bốn lớp trong [data.yaml](../../data.yaml): `car = 0`, `truck = 1`, `bus = 2`, `van = 3`; không sửa thứ tự class. Định nghĩa lớp và quy tắc box được tập hợp tại [GUIDELINE_MINI.md](../../GUIDELINE_MINI.md), theo nguyên tắc: mỗi phương tiện một box, chỉ ôm phần quan sát được, xử lý xe bị che/cắt khung mà không tự đoán phần khuất.
+
+Ba ảnh được nêu để rà các tình huống phân biệt `bus`/`van` và xử lý xe lớn là `drive_002`, `drive_035`, `drive_050`. Đối chiếu ảnh và nhãn hiện có cho thấy các vị trí xe chở khách thân lớn đang có box lớp `van`. Các mô tả cũ về pickup nhỏ hoặc xe đã được gán `bus` không thể dùng làm bằng chứng quyết định chính xác. **Học viên cần tự xác nhận vật thể, lớp cuối cùng và lý do cho từng ca**; bản biên tập không sửa nhãn để hợp thức hóa guideline.
 
 ## 3. Annotation và self-QC
 
-- Số file nhãn train: 50, cùng basename với 50 ảnh trong `dataset/images/train/`.
-- Kết quả chạy `python tools/check_yolo_labels.py`:
+Bộ dữ liệu train gồm **50 ảnh** và **50 file nhãn** cùng basename trong `dataset/labels/train/`. Lệnh đã chạy:
 
 ```text
+python tools/check_yolo_labels.py
 ĐẠT cấu trúc: 50/50 file nhãn hợp lệ. Chờ ground truth để chấm chất lượng.
 ```
 
-- Kiểm tra bổ sung: 700 box, không có dòng trùng lặp, không có dòng sai số cột/class/tọa độ; class phân bố `car = 566`, `truck = 50`, `bus = 20`, `van = 64`.
-- Commit nhãn đầu tiên là `3428ae7` (commit `786fe1a` chỉ có `.gitkeep`, không có nhãn). Bộ nhãn hiện tại đang ở working tree, chưa commit.
-- Nguồn nhãn: học viên cho biết đã gán lại nhãn. Trước khi dọn repo, working tree còn thư mục `ai_labels_retrain_tiled` có nội dung trùng với `dataset/labels/train`; repo cũng từng có `tools/generate_ai_labels.py`. Vì vậy chưa có bằng chứng đây là nhãn do học viên tự gán; nếu nhãn do model sinh thì vi phạm `RULES.md`.
-- Self-QC thủ công: repo không có nhật ký xác minh thủ công. Danh sách cũ có `drive_060`, nhưng `drive_060` thuộc tập eval nên không được tính là ảnh train đã kiểm tra. Không thay bằng tên ảnh train khác khi chưa có bằng chứng; học viên cần bổ sung nhật ký các ảnh đã mở và kiểm tra thực tế.
+Kiểm tra định dạng độc lập: **656 box**, phân bố `car = 464`, `truck = 27`, `bus = 90`, `van = 75`; không có dòng trùng lặp hoặc sai số cột/class/tọa độ. Kiểm tra cấu trúc không thay thế đánh giá về tính đầy đủ, phân lớp và độ sát box.
 
-## 4. Gold QC và rework
+Commit đầu tiên có nhãn là `3428ae7`; commit `786fe1a` chỉ có `.gitkeep` (đã đối chiếu `git log`).
 
-| Chỉ số | Bản nhãn trước | Bản relabel hiện tại |
-|---|---:|---:|
-| TP | 507 | 591 |
-| FP | 183 | 109 |
-| FN | 146 | 62 |
-| Precision | 0.7348 | 0.8443 |
-| Recall | 0.7764 | 0.9051 |
-| F1 | 0.7550 | 0.8736 |
-| mean IoU của matches | 0.8777 | 0.8873 |
-| Đạt ngưỡng | Không | Có |
+**Nguồn nhãn:** học viên đã gán nhãn 50 ảnh train và gán lại nhãn 10 ảnh val/eval; không dùng AI để sinh nhãn. Nhãn đã được kiểm tra cấu trúc bằng checker. Repo chưa có nhật ký self-QC chi tiết từng ảnh.
 
-- Số liệu bản hiện tại khớp với [outputs/annotation_evaluation.json](../../outputs/annotation_evaluation.json): TP `591`, FP `109`, FN `62`, P `0.8443`, R `0.9051`, F1 `0.8736`, mean IoU `0.8873`, `passed = true`.
-- Đây là chỉ số chất lượng annotation, không phải mAP của model.
-- Bộ giá trị TP `429`, FP `95`, FN `224`, F1 `0.7290` là một lần thử trung gian, không phải kết quả cuối.
-- Bản relabel hiện tại đạt ngưỡng annotation, nhưng chưa có bằng chứng đây là vòng sửa nhãn thủ công.
+## 4. Annotation QC và tập val
 
-## 5. Kết quả YOLO
+- `gold_train_labels` bị gán nhãn sai (ví dụ xe buýt bị gán thành `van`/`truck`), nên được loại khỏi huấn luyện và đánh giá.
+- Học viên đã gán nhãn tập train và gán lại nhãn tập val/eval.
+- Tập val gồm 10 ảnh `drive_051`–`drive_060`, đã được gán lại nhãn. Nhãn val hiện có **127 box**: `car = 102`, `truck = 4`, `bus = 12`, `van = 9`.
+- Val chỉ dùng để validation/chọn `best.pt` trong huấn luyện; **không đưa ảnh val vào train**.
+- Không có đối chiếu gold/F1 trong báo cáo này.
 
-- Môi trường: Docker, CUDA 12.4.1, PyTorch 2.6.0+cu124, Ultralytics 8.4.0, GPU NVIDIA RTX 4060.
-- Cấu hình theo [args.yaml](assets/yolo26_runs/vehicle_annotation/args.yaml): `yolo26n.pt`, dữ liệu `data.yaml` (`dataset/images/train` + `dataset/labels/train`), 50 epoch, `imgsz = 640`, `batch = -1`, `seed = 20260909`.
-- Checkpoint được đánh giá: `outputs/yolo26_runs/yolo26n_student_labels/weights/best.pt`, chọn theo fitness tại epoch 49; SHA256 `b43526aa...`.
-- Không dùng `dataset_gold_finetune` hoặc nhãn gold để train model này; eval chỉ dùng làm validation.
+## 5. Pipeline và kết quả YOLO26 trên local
 
-Kết quả trên 10 ảnh eval, khớp [model_eval_metrics.json](assets/yolo26_runs/model_eval_metrics.json):
+**Thông số phiên đã lưu:** checkpoint khởi tạo `yolo26n.pt`, huấn luyện tối đa **300 epoch** với early stopping (`patience = 50`), dừng ở epoch 209, **best epoch 159**; `imgsz = 640`, `batch = -1`, `device = 0`, `seed = 20260909`; train trên `dataset/images/train` (50 ảnh, không oversample), validation trên `dataset/images/eval` (nhãn val đã gán lại); run `yolo26n_train_early`. Tham số trong [args.yaml](assets/yolo26_runs/vehicle_annotation/args.yaml), log trong [results.csv](assets/yolo26_runs/vehicle_annotation/results.csv). Checkpoint `best.pt` có SHA256 bắt đầu bằng `341e7037` và **không đưa vào GitHub**.
 
-| Chỉ số trên eval | Giá trị |
-|---|---:|
-| Precision | 0.7396 |
-| Recall | 0.2181 |
-| mAP50 | 0.2004 |
-| mAP50-95 | 0.1388 |
+Kết quả trên 10 ảnh val, khớp [model_eval_metrics.json](assets/yolo26_runs/model_eval_metrics.json):
 
-Kết quả theo lớp trên eval:
+| Chỉ số | Kết quả trên 10 ảnh val |
+| --- | ---: |
+| Precision | **0.5831** |
+| Recall | **0.3999** |
+| mAP50 | **0.4221** |
+| mAP50–95 | **0.3337** |
 
-| Lớp | P | R | mAP50 | mAP50-95 |
-|---|---:|---:|---:|---:|
-| car | 0.528 | 0.681 | 0.626 | 0.437 |
-| truck | 1.000 | 0.000 | 0.000 | 0.000 |
-| bus | 1.000 | 0.000 | 0.000 | 0.000 |
-| van | 0.433 | 0.194 | 0.175 | 0.118 |
+Kết quả theo lớp trên val:
 
-- Ảnh dự đoán trên 10 ảnh eval: [drive_051](assets/eval_predictions/visuals/drive_051.jpg), [drive_052](assets/eval_predictions/visuals/drive_052.jpg), [drive_053](assets/eval_predictions/visuals/drive_053.jpg), [drive_054](assets/eval_predictions/visuals/drive_054.jpg), [drive_055](assets/eval_predictions/visuals/drive_055.jpg), [drive_056](assets/eval_predictions/visuals/drive_056.jpg), [drive_057](assets/eval_predictions/visuals/drive_057.jpg), [drive_058](assets/eval_predictions/visuals/drive_058.jpg), [drive_059](assets/eval_predictions/visuals/drive_059.jpg), [drive_060](assets/eval_predictions/visuals/drive_060.jpg).
+| Lớp | P | R | mAP50 | mAP50–95 |
+| --- | ---: | ---: | ---: | ---: |
+| car | 0.689 | 0.631 | 0.671 | 0.587 |
+| truck | 0.370 | 0.250 | 0.279 | 0.119 |
+| bus | 0.611 | 0.500 | 0.548 | 0.443 |
+| van | 0.641 | 0.222 | 0.187 | 0.180 |
 
-Trả lời bốn câu hỏi cuối notebook:
+**Ảnh dự đoán trên toàn bộ 10 ảnh val:** [051](assets/eval_predictions/visuals/drive_051.jpg) · [052](assets/eval_predictions/visuals/drive_052.jpg) · [053](assets/eval_predictions/visuals/drive_053.jpg) · [054](assets/eval_predictions/visuals/drive_054.jpg) · [055](assets/eval_predictions/visuals/drive_055.jpg) · [056](assets/eval_predictions/visuals/drive_056.jpg) · [057](assets/eval_predictions/visuals/drive_057.jpg) · [058](assets/eval_predictions/visuals/drive_058.jpg) · [059](assets/eval_predictions/visuals/drive_059.jpg) · [060](assets/eval_predictions/visuals/drive_060.jpg).
 
-1. Trên eval, recall theo lớp: `car = 0.681`, `van = 0.194`, `truck = 0.000`, `bus = 0.000`. `truck` và `bus` thấp nhất nhưng chỉ có 5 và 2 instance, không đủ để kết luận chắc chắn.
-2. mAP50 `0.2004` cao hơn mAP50-95 `0.1388`, cho thấy box lệch nhiều ở ngưỡng IoU cao; cần đối chiếu [val_batch0_pred.jpg](assets/yolo26_runs/vehicle_eval/val_batch0_pred.jpg).
-3. mAP50 theo lớp: `car = 0.626`, `van = 0.175`, `truck = 0`, `bus = 0`. `truck`/`bus`/`van` có quá ít mẫu và có thể bị nhầm với `car`; cần xem [confusion_matrix.png](assets/yolo26_runs/vehicle_eval/confusion_matrix.png) để xác định cặp nhầm lẫn.
-4. Không dùng eval để train vì eval là tập validation dùng chọn checkpoint và đo khả năng tổng quát hóa; đây không phải test set độc lập.
+**Phân tích từ các minh chứng đã lưu:**
+
+1. **Lớp có recall thấp:** trên val, recall theo lớp là `car = 0.631`, `bus = 0.500`, `truck = 0.250`, `van = 0.222`. `van` và `truck` thấp nhất nhưng chỉ có 9 và 4 instance; `bus` có 12 instance và đã cải thiện nhờ train dài hơn.
+2. **mAP50 và mAP50–95:** mAP50 `0.4221` cao hơn mAP50–95 `0.3337`. Khi yêu cầu IoU chặt hơn, khả năng ghép prediction với nhãn giảm; cần đối chiếu [val_batch0_pred.jpg](assets/yolo26_runs/vehicle_eval/val_batch0_pred.jpg).
+3. **Ví dụ lỗi/độ phủ:** mAP50 theo lớp là `car = 0.671`, `bus = 0.548`, `truck = 0.279`, `van = 0.187`. `drive_052` vẫn bị bỏ sót ở `conf=0.25`, cho thấy model còn hạn chế với bus lớn/bị che.
+4. **Không dùng val để train:** val chỉ dùng để validation/chọn checkpoint; đây không phải test set độc lập.
+
+Phân bố đối tượng trong tập train là `464 car`, `27 truck`, `90 bus`, `75 van` (50 ảnh, 656 box); không dùng oversample và không đưa val vào train.
 
 ## 6. Khó khăn và cách xử lý
 
-| Bước | Vấn đề | Cách đã thử | Kết quả |
-|---|---|---|---|
-| Dữ liệu | Chỉ 50 ảnh train, mất cân bằng lớp | Ghi nhận phân bố box hiện tại | `car` chiếm đa số; `bus` chỉ có 20 box |
-| Nhãn | Bản nhãn trước F1 `0.7550` | Gán lại và đánh giá lại với gold | F1 `0.8736`, đạt ngưỡng annotation |
-| Nguồn nhãn | Chưa có nhật ký gán thủ công | Kiểm tra working tree trước khi dọn | Từng có `ai_labels_retrain_tiled`; chưa chứng minh được nhãn thủ công |
-| Huấn luyện | Cần model mới từ nhãn hiện tại | Train `yolo26n.pt` trên `dataset/labels/train`, val trên eval | mAP50 `0.2004`, mAP50-95 `0.1388` |
-| Thử nghiệm cũ | Từng fine-tune trên gold | Không dùng làm kết quả nộp | Kết quả gold-finetuned bị leakage, đã loại khỏi báo cáo |
-| Môi trường | Image Docker đổi tag | Dùng image `cvat.pytorch.ultralytics.yolo26m:latest` | Chạy được train/val cục bộ |
-| Nộp bài | Yêu cầu link Colab | Không chạy Colab | Thiếu minh chứng Colab theo `SUBMISSION.md` |
+| Nội dung | Ghi nhận thực tế | Trạng thái |
+| --- | --- | --- |
+| Định dạng nhãn | 50/50 file qua checker; 656 box train | Đã kiểm tra cấu trúc |
+| Nhãn val | Gán lại 10 ảnh val; 127 box | Đã dùng cho validation |
+| Huấn luyện | Run local `yolo26n_train_early` trên Docker/GPU; early stopping 300 epoch/patience 50; best epoch 159 | Có minh chứng thực thi local |
+| Đánh giá val | P `0.5831`, R `0.3999`, mAP50 `0.4221`, mAP50–95 `0.3337` | Có file minh chứng |
+| Bus trên val | mAP50 `0.548`, recall `0.500` | Cải thiện so với 50 epoch; `drive_052` vẫn sót |
+| Self-QC và các ca mơ hồ | Chưa có nhật ký xác nhận thủ công của học viên | Cần học viên bổ sung |
+| Hình thức nộp | Không có link Colab; có kết quả local | Cần giảng viên xác nhận chấp nhận thay thế |
 
 ## 7. Tự đánh giá theo rubric
 
-- Định dạng YOLO: đạt 50/50 file, 5 cột, tọa độ chuẩn hóa, class ID đúng.
-- Đầy đủ vật thể, độ bám sát và phân lớp: chưa xác minh được bằng kiểm tra thủ công có minh chứng; nguồn nhãn chưa được xác nhận là thủ công.
-- Mini guideline: file có định nghĩa lớp, quy tắc box và ba ca mơ hồ; chưa có bằng chứng các quyết định do học viên tự đưa ra.
-- Gold-set QC: F1 `0.8736` đạt `0.80`; mean IoU `0.8873` đạt `0.70`.
-- Pipeline YOLO: có log, metrics và ảnh eval, nhưng không có Colab.
-- Kết quả model trên eval: mAP50 `0.2004`, mAP50-95 `0.1388`; thấp do 50 ảnh, mất cân bằng lớp và model nhỏ.
-- Kết luận: bài chưa tuân thủ đầy đủ `SUBMISSION.md` (thiếu Colab) và chưa có minh chứng nhãn do học viên tự gán; không nên nộp ở trạng thái hiện tại.
+- **Định dạng YOLO:** đạt yêu cầu kiểm tra cấu trúc (50/50 file, lớp/tọa độ hợp lệ).
+- **Đầy đủ vật thể, hình học box, phân lớp:** chưa thể xác nhận chỉ từ checker; cần kiểm chứng thủ công và xác minh nguồn nhãn.
+- **Mini guideline:** có định nghĩa lớp, quy tắc box và ba ảnh cần đối chiếu; quyết định cuối và lý do do học viên đưa ra chưa có xác nhận đủ tin cậy.
+- **Annotation QC:** không dùng gold; tập val đã được gán lại và dùng làm validation.
+- **Pipeline:** có log và 10 ảnh val từ local; **chưa đáp ứng nguyên văn mục link Colab của đề gốc**, trừ khi giảng viên cho phép local thay thế.
+- **Kết quả model:** val mAP50 `0.4221`, mAP50–95 `0.3337`; `bus` mAP50 `0.548`, `car` `0.671`.
+- **Kết luận:** các file minh chứng kỹ thuật đã có nhưng còn thiếu xác nhận cá nhân về self-QC/guideline; chưa nên tuyên bố đạt toàn bộ rubric.
 
 ## 8. Công cụ AI và tài liệu tham khảo
 
-- AI được dùng để hỗ trợ chạy train/eval bằng Docker, kiểm tra artifact và soạn báo cáo. Nhãn từng được sinh bởi model (thư mục `ai_labels_retrain_tiled` và script `tools/generate_ai_labels.py` trong lịch sử); nếu dùng nhãn AI để nộp thì vi phạm `RULES.md`.
-- Ultralytics 8.4.0 (train/val/predict), checkpoint pretrained `yolo26n.pt`.
-- Tài liệu bài lab: `RULES.md`, `SUBMISSION.md`, `RUBRIC.md`, `GUIDE.md`.
+- **Ultralytics/YOLO26n:** công cụ huấn luyện, đánh giá và dự đoán trên local, theo log được cung cấp.
+- **AI hỗ trợ biên tập/kiểm tra tài liệu:** được sử dụng để rà đường dẫn, đối chiếu số liệu và biên tập nội dung báo cáo; phần này không thay thế xác nhận cá nhân về annotation, self-QC hay quyết định mơ hồ.
+- **Nguồn gốc nhãn:** nhãn train do học viên gán; nhãn val/eval do học viên gán lại; không dùng AI để sinh nhãn.
+- **Tài liệu bài tập:** [RULES.md](../../RULES.md), [GUIDE.md](../../GUIDE.md), [CHECKPOINTS.md](../../CHECKPOINTS.md), [RUBRIC.md](../../RUBRIC.md), [SUBMISSION.md](../../SUBMISSION.md).
