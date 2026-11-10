@@ -32,13 +32,15 @@ Commit đầu tiên có nhãn là `3428ae7`; commit `786fe1a` chỉ có `.gitkee
 
 **Nguồn nhãn:** học viên đã gán nhãn 50 ảnh train và gán lại nhãn 10 ảnh val/eval; không dùng AI để sinh nhãn. Nhãn đã được kiểm tra cấu trúc bằng checker. Repo chưa có nhật ký self-QC chi tiết từng ảnh.
 
-## 4. Annotation QC và tập val
+## 4. Gold QC và rework (gold bị gán nhãn sai)
 
-- `gold_train_labels` bị gán nhãn sai (ví dụ xe buýt bị gán thành `van`/`truck`), nên được loại khỏi huấn luyện và đánh giá.
+- Vẫn tham chiếu `gold_train_labels` và [outputs/annotation_evaluation.json](../../outputs/annotation_evaluation.json) để đối chiếu.
+- Gold bị gán nhãn sai: **xe buýt bị gán thành `van` (class 3)**, một số trường hợp thành `truck`/`car`. Ví dụ `drive_052`: xe buýt hai tầng lớn bị gold gán `van`, không phải `bus`.
+- Vì vậy không dùng gold để train/đánh giá; F1 gold chỉ để tham khảo, không phải kết quả cuối.
+- Kết quả đối chiếu gold hiện có (chỉ tham khảo): TP `307`, FP `349`, FN `346`, P `0.4680`, R `0.4701`, F1 `0.4691`, mean IoU `0.8713`, `passed = false`. Các số này bị ảnh hưởng bởi lỗi gold nên không dùng để kết luận chất lượng nhãn.
 - Học viên đã gán nhãn tập train và gán lại nhãn tập val/eval.
 - Tập val gồm 10 ảnh `drive_051`–`drive_060`, đã được gán lại nhãn. Nhãn val hiện có **127 box**: `car = 102`, `truck = 4`, `bus = 12`, `van = 9`.
 - Val chỉ dùng để validation/chọn `best.pt` trong huấn luyện; **không đưa ảnh val vào train**.
-- Không có đối chiếu gold/F1 trong báo cáo này.
 
 ## 5. Pipeline và kết quả YOLO26 trên local
 
@@ -90,7 +92,7 @@ Phân bố đối tượng trong tập train là `464 car`, `27 truck`, `90 bus`
 - **Định dạng YOLO:** đạt yêu cầu kiểm tra cấu trúc (50/50 file, lớp/tọa độ hợp lệ).
 - **Đầy đủ vật thể, hình học box, phân lớp:** chưa thể xác nhận chỉ từ checker; cần kiểm chứng thủ công và xác minh nguồn nhãn.
 - **Mini guideline:** có định nghĩa lớp, quy tắc box và ba ảnh cần đối chiếu; quyết định cuối và lý do do học viên đưa ra chưa có xác nhận đủ tin cậy.
-- **Annotation QC:** không dùng gold; tập val đã được gán lại và dùng làm validation.
+- **Gold QC:** gold bị gán sai bus thành `van`; F1 gold `0.4691` chỉ dùng tham khảo, không phải kết quả cuối. Tập val đã được gán lại và dùng làm validation.
 - **Pipeline:** có log và 10 ảnh val từ local; **chưa đáp ứng nguyên văn mục link Colab của đề gốc**, trừ khi giảng viên cho phép local thay thế.
 - **Kết quả model:** val mAP50 `0.4221`, mAP50–95 `0.3337`; `bus` mAP50 `0.548`, `car` `0.671`.
 - **Kết luận:** các file minh chứng kỹ thuật đã có nhưng còn thiếu xác nhận cá nhân về self-QC/guideline; chưa nên tuyên bố đạt toàn bộ rubric.
